@@ -7,7 +7,24 @@ from aiogram import Bot, types
 from aiogram.exceptions import TelegramAPIError
 from dotenv import load_dotenv
 import os
+import datetime
 
+def get_sleep_duration():
+    """Рассчитывает сколько секунд спать до 7 утра"""
+    now = datetime.datetime.now()
+
+    # Если сейчас ночное время
+    if datetime.time(2, 0) <= now.time() < datetime.time(7, 0):
+        # Создаем datetime на 7:00 сегодня
+        wakeup_time = now.replace(hour=7, minute=0, second=0, microsecond=0)
+        # Если уже прошло 7:00, берем 7:00 следующего дня
+        if now >= wakeup_time:
+            wakeup_time += datetime.timedelta(days=1)
+
+        sleep_seconds = (wakeup_time - now).total_seconds()
+        return sleep_seconds
+
+    return 0  # Не ночное время
 # --- НАСТРОЙКИ ---
 DB_NAME = 'news.db'
 # Установите эти переменные окружения
@@ -146,11 +163,17 @@ async def run_publisher():
     """
     Основная асинхронная функция публикации новостей.
     """
+
     logger.info("=== Запуск Telegram Publisher ===")
     bot = Bot(token=BOT_TOKEN)
 
     try:
         while True:
+            sleep_duration = get_sleep_duration()
+            if sleep_duration > 0:
+                logger.info(f'🌙 Ночной перерыв. Ожидание до утра: {sleep_duration / 3600:.1f} часов')
+                await asyncio.sleep(sleep_duration)
+                continue
             # 1. Получаем следующую обработанную новость
             news_item = get_next_processed_news(DB_NAME)
 
