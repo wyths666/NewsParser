@@ -27,7 +27,6 @@ def get_sleep_duration():
     return 0  # Не ночное время
 # --- НАСТРОЙКИ ---
 DB_NAME = 'news.db'
-# Установите эти переменные окружения
 load_dotenv()
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 CHANNEL_ID = os.getenv('CHANNEL_ID')
@@ -115,6 +114,10 @@ async def publish_news_to_telegram(bot: Bot, news_item: dict):
             # Все равно помечаем как опубликованную, чтобы не зацикливалось
             mark_news_as_published(DB_NAME, news_item['title'])
             return
+        if 'vpn' in processed_text.lower(): # запрещена реклама vpn сервисов
+            logger.info(f"Пропущена публикация: обнаружено слово 'vpn' в тексте новости '{news_item['title'][:50]}...'")
+            mark_news_as_published(DB_NAME, news_item['title'])
+            return
 
         # Формируем текст сообщения
         # Используем HTML для форматирования
@@ -142,7 +145,7 @@ async def publish_news_to_telegram(bot: Bot, news_item: dict):
             chat_id=CHANNEL_ID,
             text=message_text,
             parse_mode='HTML',
-            disable_web_page_preview=False # Отключаем предпросмотр ссылки
+            disable_web_page_preview=False # Отключаем предпросмотр ссылки если нужно
         )
         logger.info(f"Новость '{title_ru[:50]}...' успешно опубликована в Telegram.")
 
@@ -201,22 +204,6 @@ async def run_publisher():
 
 # --- ЗАПУСК ---
 if __name__ == "__main__":
-    # Убедитесь, что TELEGRAM_BOT_TOKEN и TELEGRAM_CHANNEL_ID установлены
-    # Linux/macOS:
-    # export TELEGRAM_BOT_TOKEN=ваш_токен_бота
-    # export TELEGRAM_CHANNEL_ID=@имя_канала_или_ID
-    # python publisher.py
-    #
-    # Windows (cmd):
-    # set TELEGRAM_BOT_TOKEN=ваш_токен_бота
-    # set TELEGRAM_CHANNEL_ID=@имя_канала_или_ID
-    # python publisher.py
-    #
-    # Windows (PowerShell):
-    # $env:TELEGRAM_BOT_TOKEN="ваш_токен_бота"
-    # $env:TELEGRAM_CHANNEL_ID="@имя_канала_или_ID"
-    # python publisher.py
-
     try:
         asyncio.run(run_publisher())
     except KeyboardInterrupt:

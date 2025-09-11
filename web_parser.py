@@ -24,7 +24,6 @@ PARSERS_FOR_SITES = {
     'cnet.com': fetch_text_cnet,
     'computerweekly.com': fetch_text_computerweekly,
     'engadget.com': fetch_text_engadget
-    # Добавьте другие сайты и их функции
 }
 
 # --- ФУНКЦИИ РАБОТЫ С БД ---
@@ -148,9 +147,7 @@ def fetch_full_texts():
         # 5. Извлекаем текст с помощью выбранного парсера
         full_text = None
         try:
-            # --- ВАЖНО: Оборачиваем вызов парсера в try-except ---
             full_text = parser_func(link)
-            # --- КОНЕЦ Оборачивания ---
         except requests.exceptions.RequestException as e:
             logger.error(f"Ошибка сети при получении статьи {link}: {e}")
             # Продолжаем цикл, переходя к следующей новости
@@ -177,5 +174,5 @@ def fetch_full_texts():
     logger.info(f"=== ✔️ Извлечение текста завершено. Обработано: {fetched_count} ===")
 
 
-# --- ЗАПУСК ---
+
 
