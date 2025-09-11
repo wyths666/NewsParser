@@ -118,6 +118,10 @@ async def publish_news_to_telegram(bot: Bot, news_item: dict):
             logger.info(f"Пропущена публикация: обнаружено слово 'vpn' в тексте новости '{news_item['title'][:50]}...'")
             mark_news_as_published(DB_NAME, news_item['title'])
             return
+        if 'В интернете есть много сайтов с информацией на эту тему.' in processed_text:
+            logger.info(f"Пропущена публикация: ошибка обработки gpt новости '{news_item['title'][:50]}...'")
+            mark_news_as_published(DB_NAME, news_item['title'])
+            return
 
         # Формируем текст сообщения
         # Используем HTML для форматирования
